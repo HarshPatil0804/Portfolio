@@ -33,7 +33,7 @@
     {title:'Data Analytics Job Simulation',issuer:'Forage · Deloitte',date:'1 Apr 2026',skills:'Data analysis · forensic technology.',file:'Deloitte Data Analytics Certificate.pdf',mark:'D'},
     {title:'Data Analytics Job Simulation',issuer:'Forage · Quantium',date:'15 Oct 2025',skills:'Data preparation and customer analytics · experimentation and uplift testing · analytics and commercial application. Certificate contains inconsistent names.',file:'completion_certificate.pdf',mark:'Q'},
     {title:'Data Science & Analytics',issuer:'HP LIFE · HP Foundation',date:'7 Jul 2026',skills:'Data-science and analytics practices, methods, and tools · data-driven business approaches.',file:'Data Science & Analytics.pdf',mark:'HP'},
-    {title:'Google Cloud Data Analytics',issuer:'Google Cloud',date:'Date not shown on image',skills:'The credential image shows the title; course details are not listed.',file:'../images/google-cloud-data-analytics-certificate.png',mark:'google'},
+    {title:'Google Cloud Data Analytics',issuer:'Google Cloud',date:'Date not shown on image',skills:'The credential image shows the title; course details are not listed.',file:'images/google-cloud-data-analytics-certificate.png',mark:'google'},
     {title:'Introduction to MS Excel',issuer:'Not stated on certificate',date:'4 Aug 2026',skills:'Course details are not stated on the certificate.',file:'Excel.pdf',mark:'XL'},
     {title:'Beginner to T-SQL Workshop',issuer:'Not stated on certificate',date:'08/12/2026 (date format unclear)',skills:'Course details are not stated on the certificate.',file:'Beginner to T-SQL Workshop - Harshavardhan Patil.pdf',mark:'SQL'},
     {title:'Data Fundamentals',issuer:'IBM (filename label)',date:'Date not shown',skills:'Course details are not shown in the credential file.',file:'Data Fundamentals from IBM.pdf',mark:'IBM'},
@@ -46,11 +46,61 @@
   ];
   track.innerHTML = certs.map((cert, i) => {
     const icon = cert.mark === 'google' ? '<img src="images/google-cloud-data-analytics-certificate.png" alt="" loading="lazy">' : cert.mark;
-    const rawHref = cert.file.startsWith('../') ? `certificates/${cert.file}` : `certificates/${cert.file}`;
+    const rawHref = cert.file.startsWith('images/') ? cert.file : `certificates/${cert.file}`;
     const href = rawHref.split('/').map(encodeURIComponent).join('/');
     return `<article class="certificate-card reveal-item"><div class="certificate-top"><span class="cert-mark ${cert.mark === 'google' ? 'google' : ''}">${icon}</span><span class="cert-num">${String(i + 1).padStart(2, '0')}</span></div><div class="certificate-copy"><h3>${cert.title}</h3><p class="cert-issuer">${cert.issuer}</p><p class="cert-date">${cert.date}</p><p class="cert-skills">${cert.skills}</p></div><div class="certificate-bottom"><span>CREDENTIAL</span><a href="${href}" target="_blank" rel="noreferrer" aria-label="Open ${cert.title} certificate">VIEW ↗</a></div></article>`;
   }).join('');
   document.getElementById('year').textContent = new Date().getFullYear();
+
+  const updateGithubStrip = async () => {
+    const countNode = document.getElementById('github-repo-count');
+    const dateNode = document.getElementById('github-latest-push');
+    if (!countNode || !dateNode) return;
+
+    const cacheKey = 'github-strip:HarshPatil0804:v1';
+    const isValid = value => value
+      && Number.isSafeInteger(value.count)
+      && value.count >= 0
+      && typeof value.latest === 'string'
+      && /^\d{1,2} [A-Z][a-z]{2} \d{4}$/.test(value.latest);
+    const apply = value => {
+      if (!isValid(value)) return false;
+      countNode.textContent = String(value.count);
+      dateNode.textContent = value.latest;
+      return true;
+    };
+
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(cacheKey) || 'null');
+      if (apply(cached)) return;
+    } catch {}
+
+    try {
+      const response = await fetch('https://api.github.com/users/HarshPatil0804/repos?per_page=100&sort=pushed', {
+        headers: { Accept: 'application/vnd.github+json' }
+      });
+      if (!response.ok) return;
+      const repos = await response.json();
+      if (!Array.isArray(repos)) return;
+
+      const publicRepos = repos.filter(repo => repo && repo.fork === false);
+      let latestTimestamp = 0;
+      for (const repo of publicRepos) {
+        const pushedAt = Date.parse(repo.pushed_at);
+        if (Number.isFinite(pushedAt) && pushedAt > latestTimestamp) latestTimestamp = pushedAt;
+      }
+      if (!latestTimestamp) return;
+
+      const latest = new Intl.DateTimeFormat('en-GB', {
+        day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'
+      }).format(new Date(latestTimestamp));
+      const result = { count: publicRepos.length, latest };
+      if (!apply(result)) return;
+      try { sessionStorage.setItem(cacheKey, JSON.stringify(result)); } catch {}
+    } catch {}
+  };
+  void updateGithubStrip();
+
   const hideLoader = () => setTimeout(() => loader?.classList.add('is-hidden'), reduced ? 0 : 650);
   addEventListener('load', hideLoader, {once:true}); setTimeout(() => loader?.classList.add('is-hidden'), 1400);
 
@@ -71,18 +121,56 @@
     customer:{type:'CUSTOMER ANALYTICS · POWER BI',title:'Customer Shopping Behavior Analysis',problem:'The project examines shopping patterns, customer segments, subscription status, ratings, and revenue opportunities across 3,900 transactions.',approach:'The notebook fills missing review ratings with the median within each product category and loads records through SQLAlchemy into PostgreSQL. The Power BI dashboard shows customer, revenue, category, age, subscription, and segmentation views.',tools:'Python · Pandas · SQLAlchemy · PostgreSQL · Power BI · Jupyter',result:'The dashboard shows 3.9K customers, a 3.75 average rating, and a $59.76 average purchase amount.',link:'https://github.com/HarshPatil0804/Customer-Behavior-Analysis-'},
     ipl:{type:'SPORTS ANALYTICS · STREAMLIT',title:'IPL Ball-by-Ball Analytics',problem:'The project turns delivery-level IPL records into team, batter, bowler, scoring, extras, dismissal, and innings analysis.',approach:'The notebook cleans and engineers fields, aggregates delivery data, and feeds a Streamlit app with team/innings filters, Plotly charts, KPIs, and filtered CSV export.',tools:'Python · Pandas · NumPy · Streamlit · Plotly · Jupyter',result:'The analysis covers 577 matches, 173,965 runs, 5,532 wickets, 15,413 fours, 5,813 sixes, and 49,915 dot balls. Player and team filters use numeric dataset IDs.',link:'https://github.com/HarshPatil0804/IPL_Ball_by_Ball_IBM_Project'}
   };
+  // Edit this single array to update the in-progress cards and their dialog details.
+  const currentBuilds = [
+    {
+      key: 'build-rowdata', title: 'RowData-Converter', type: 'DATA PREPARATION · BROWSER-BASED',
+      status: 'In progress. The live app is available for review.',
+      summary: 'A browser-based tool that turns messy CSV, Excel, PDF, scanned image, log and ZIP files into clean tables and pivot views. No uploads; processing stays on-device.',
+      problem: 'Messy files in varied formats need a consistent route to clean tables and pivot views.',
+      approach: 'Runs detect → extract → structure → clean → report in a Web Worker. Ten documented cleaning rules cover junk rows, IDs, dates, numbers, packed fields, categories, duplicates, logic flags and reconciliation. Rejected rows and flags are reported, never silently deleted. Exports CSV, XLSX and JSON; includes pivot totals checks, OCR for scanned images and an automated test suite.',
+      tools: ['TypeScript', 'Vite', 'Web Workers', 'WebAssembly', 'SheetJS', 'pdf.js', 'Tesseract.js', 'Vitest'],
+      repo: 'https://github.com/HarshPatil0804/RowData-Converter',
+      live: 'https://row-data-converter.vercel.app/'
+    },
+    {
+      key: 'build-excel-agent', title: 'Excel-Agent (DataCleaner)', type: 'DATA CLEANING · BROWSER-BASED',
+      status: 'Current phase: Smart Clean (phase 3 of 5). Next: before/after review with export and undo/redo, followed by optional AI rule suggestions.',
+      summary: 'A browser-only workspace for importing, profiling and cleaning CSV, Excel and JSON data, with rule-based cleaning, review of proposed changes and reusable recipes. Data never leaves the device.',
+      problem: 'Users need a local workspace to inspect data and review cleaning changes before applying them.',
+      approach: 'Parses and profiles data locally. Smart Clean applies safe rules for whitespace, missing-value normalization, number and type fixes, column-name normalization, and empty row or column removal. Risky rules are proposed for approval; protected columns are never touched. Large files use DuckDB-WASM. Recipes are saved locally and can be exported as JSON.',
+      tools: ['React', 'TypeScript', 'Tailwind CSS', 'Zustand', 'DuckDB-WASM', 'PapaParse', 'SheetJS', 'ECharts', 'Zod', 'Vitest'],
+      repo: 'https://github.com/HarshPatil0804/Excel-Agent'
+    }
+  ];
+  const buildingSection = document.getElementById('building');
+  const buildingGrid = document.getElementById('building-grid');
+  if (!currentBuilds.length) buildingSection?.setAttribute('hidden', '');
+  else if (buildingGrid) {
+    buildingSection?.removeAttribute('hidden');
+    buildingGrid.innerHTML = currentBuilds.map(item => {
+      const liveBadge = item.live ? `<a class="building-live-badge" href="${item.live}" target="_blank" rel="noreferrer" aria-label="Open ${item.title} live app">LIVE ↗</a>` : '';
+      const liveAction = item.live ? `<a class="project-link-primary" href="${item.live}" target="_blank" rel="noreferrer">LIVE APP ↗</a>` : '';
+      const tools = item.tools.map(tool => `<span>${tool}</span>`).join('');
+      const flow = item.key === 'build-rowdata'
+        ? '<span>Detect</span><i>→</i><span>Extract</span><i>→</i><span>Structure</span><i>→</i><span>Clean</span><i>→</i><span>Report</span>'
+        : '<span>Import</span><i>→</i><span>Profile</span><i>→</i><span>Smart Clean</span><i>→</i><span>Review</span>';
+      return `<article class="project-card building-card reveal-item"><div class="project-visual building-visual"><div class="building-visual-top"><span class="building-status-chip">IN PROGRESS</span>${liveBadge}</div><div class="building-flow" aria-hidden="true">${flow}</div></div><div class="project-meta"><div><span class="project-type">${item.type}</span><h3>${item.title}</h3></div><button type="button" class="detail-button" aria-label="View details for ${item.title}" aria-haspopup="dialog" data-open="${item.key}">↗</button></div><p class="project-summary">${item.summary}</p><div class="building-tools" role="group" aria-label="Tools">${tools}</div><div class="project-links">${liveAction}<a href="${item.repo}" target="_blank" rel="noreferrer">REPOSITORY ↗</a></div></article>`;
+    }).join('');
+  }
+  currentBuilds.forEach(item => { projects[item.key] = { ...item, link: item.repo }; });
   const dialog = document.querySelector('.project-dialog');
   document.querySelectorAll('[data-open]').forEach(button => button.addEventListener('click', () => {
     const item=projects[button.dataset.open]; document.getElementById('dialog-type').textContent=item.type; document.getElementById('dialog-title').textContent=item.title;
     document.getElementById('dialog-problem').textContent=item.problem; document.getElementById('dialog-approach').textContent=item.approach;
-    document.getElementById('dialog-tools').textContent=item.tools; document.getElementById('dialog-result').textContent=item.result;
+    document.getElementById('dialog-tools').textContent=Array.isArray(item.tools)?item.tools.join(' · '):item.tools; document.getElementById('dialog-result-label').textContent=item.status?'STATUS':'RESULT'; document.getElementById('dialog-result').textContent=item.status||item.result;
     document.querySelector('.dialog-link').href=item.link; dialog.showModal(); lenis?.stop();
   }));
   document.querySelector('.dialog-close').addEventListener('click',()=>dialog.close()); dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close();});
   dialog.addEventListener('close',()=>lenis?.start());
 
   const chips=document.querySelectorAll('[data-skills]');
-  chips.forEach(button=>{const highlight=()=>{const related=button.dataset.skills.split(' ');document.querySelectorAll('.project-card').forEach(card=>card.classList.toggle('is-dimmed',!related.includes(card.dataset.project)));chips.forEach(chip=>chip.classList.toggle('is-active',chip===button));};button.addEventListener('mouseenter',highlight);button.addEventListener('focus',highlight);});
+  chips.forEach(button=>{const highlight=()=>{const related=button.dataset.skills.split(' ');document.querySelectorAll('.project-card[data-project]').forEach(card=>card.classList.toggle('is-dimmed',!related.includes(card.dataset.project)));chips.forEach(chip=>chip.classList.toggle('is-active',chip===button));};button.addEventListener('mouseenter',highlight);button.addEventListener('focus',highlight);});
   document.querySelector('.skill-groups').addEventListener('mouseleave',()=>{document.querySelectorAll('.project-card').forEach(card=>card.classList.remove('is-dimmed'));chips.forEach(chip=>chip.classList.remove('is-active'));});
 
   const updateScroll=()=>{const max=document.documentElement.scrollHeight-innerHeight;document.querySelector('.progress span').style.transform=`scaleX(${max>0?scrollY/max:0})`;};

@@ -98,3 +98,28 @@ html.lenis.lenis-smooth{scroll-behavior:auto !important}
 html.lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain}
 html.lenis.lenis-stopped{overflow:clip}
 html.lenis.lenis-smooth iframe{pointer-events:none}
+
+/* Current work cards reuse the project grid while keeping progress claims explicit. */
+.building{background:#f0f2ec}
+.building-grid{align-items:stretch}
+.building-card{display:flex;flex-direction:column;height:100%;min-width:0}
+.building-card .project-summary{max-width:none}
+.building-visual{height:148px;min-height:148px;padding:18px 20px;background:#dfe9dc;color:#354a3c}
+.building-visual-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.building-status-chip,.building-live-badge{display:inline-flex;align-items:center;gap:6px;min-height:25px;padding:5px 9px;border:1px solid #9cae9d;border-radius:999px;font:8px var(--mono);letter-spacing:.08em;white-space:nowrap}
+.building-status-chip{background:#f4f6f0;color:#5e7061}
+.building-live-badge{background:#1f3327;border-color:#1f3327;color:#eef4ed}
+.building-live-badge:hover{background:#365742;color:#fff}
+.building-flow{display:flex;flex-wrap:wrap;align-items:center;gap:7px 9px;margin-top:20px;color:#3f5a45;font:10px var(--mono);letter-spacing:.025em}
+.building-flow span{padding:6px 8px;border:1px solid #bfcebf;background:#eef2e9}
+.building-flow i{font-style:normal;color:#7a927d}
+.building-tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.building-tools span{border:1px solid #d8dfd6;border-radius:999px;padding:5px 8px;color:#68756b;font:8px var(--mono);line-height:1.2}
+.project-links a.project-link-primary{color:#fff;background:#253d2c;font-weight:500;padding:8px 10px;border-radius:2px;text-decoration:none}.project-links a.project-link-primary:hover{background:#42664b;color:#fff}
+
+a:focus-visible,button:focus-visible{outline:2px solid #477b51;outline-offset:3px}
+.live-image-badge{position:absolute;z-index:2;top:14px;right:14px;display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border-radius:999px;background:#1d3427;color:#f3f6ef;font:8px var(--mono);letter-spacing:.1em;box-shadow:0 3px 12px #13231925}
+.live-image-badge:hover{background:#3c6b49;color:#fff}
+.live-image-badge:focus-visible,.building-live-badge:focus-visible{outline-offset:-3px}
+@media(max-width:700px){.building-visual{height:138px;min-height:138px;padding:16px}.building-flow{gap:6px;margin-top:17px;font-size:9px}.building-flow span{padding:5px 6px}.building-tools span{font-size:7px}}
+.dialog-kicker{display:block;margin-top:4px;font:8px var(--mono);letter-spacing:.08em;color:#709079}
